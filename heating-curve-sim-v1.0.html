@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가열 곡선 비교 — 순물질 vs 혼합물</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{
+    --navy:#1b2a4a; --navy-2:#26375c; --ink:#1f2937; --muted:#64748b;
+    --gold:#c8a24a; --gold-soft:#e7d6a8;
+    --water:#2563eb; --salt:#e8590c;
+    --bg:#f6f7fb; --card:#ffffff; --line:#e2e8f0;
+    --good:#157347;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Pretendard","Malgun Gothic",-apple-system,"Apple SD Gothic Neo",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+    padding:18px; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+  header{
+    background:linear-gradient(135deg,var(--navy),var(--navy-2));
+    color:#fff; border-radius:18px; padding:22px 24px; position:relative; overflow:hidden;
+    box-shadow:0 10px 30px rgba(27,42,74,.18);
+  }
+  header::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+    background:radial-gradient(circle,rgba(200,162,74,.35),transparent 70%);}
+  .eyebrow{font-size:.78rem;letter-spacing:.14em;color:var(--gold-soft);font-weight:700}
+  header h1{font-size:1.5rem;font-weight:800;margin:4px 0 6px;letter-spacing:-.02em}
+  header p{font-size:.92rem;color:#cdd6e8}
+  .std{display:inline-block;margin-top:10px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(231,214,168,.4);padding:5px 12px;border-radius:999px;
+    font-size:.8rem;color:var(--gold-soft);font-weight:600}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:18px 20px;margin-top:16px;box-shadow:0 4px 14px rgba(31,41,55,.04)}
+
+  .controls{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:flex-end}
+  .ctl{flex:1 1 260px;min-width:240px}
+  .ctl label{display:flex;justify-content:space-between;font-weight:700;font-size:.92rem;margin-bottom:8px}
+  .ctl label b{color:var(--salt);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;height:30px;accent-color:var(--salt);cursor:pointer}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-weight:700;font-size:.95rem;border:0;border-radius:11px;
+    padding:12px 20px;cursor:pointer;transition:transform .08s ease, box-shadow .15s ease}
+  button:active{transform:translateY(1px)}
+  .b-go{background:var(--navy);color:#fff;box-shadow:0 4px 12px rgba(27,42,74,.25)}
+  .b-go:hover{background:var(--navy-2)}
+  .b-reset{background:#eef1f6;color:var(--navy)}
+  button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+  .chart-box{margin-top:16px;position:relative}
+  svg{width:100%;height:auto;display:block;background:#fcfdff;border-radius:14px;border:1px solid var(--line)}
+  .legend{display:flex;gap:18px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:.9rem}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+  .read{border-radius:13px;padding:14px 16px;border:1px solid var(--line);background:#fff}
+  .read .t{font-size:.82rem;color:var(--muted);font-weight:600}
+  .read .v{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+  .read.water{border-left:5px solid var(--water)}
+  .read.water .v{color:var(--water)}
+  .read.salt{border-left:5px solid var(--salt)}
+  .read.salt .v{color:var(--salt)}
+  .read .tag{font-size:.78rem;font-weight:700;margin-top:4px}
+  .tag-ok{color:var(--good)} .tag-no{color:var(--salt)}
+
+  .think{background:#fffdf5;border:1px dashed var(--gold);border-radius:14px;padding:16px 18px;margin-top:16px}
+  .think h3{font-size:1rem;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .think ol{padding-left:20px}
+  .think li{margin:5px 0;font-size:.94rem}
+
+  .conclude{margin-top:16px;border-radius:14px;padding:18px 20px;color:#fff;
+    background:linear-gradient(135deg,#157347,#1a8a55);opacity:0;transform:translateY(8px);
+    transition:opacity .5s ease, transform .5s ease}
+  .conclude.show{opacity:1;transform:none}
+  .conclude h3{font-size:1.05rem;margin-bottom:6px}
+  .conclude p{font-size:.94rem;color:#e8fff2}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;margin:22px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">2학년 과학 · 물질의 특성</div>
+    <h1>가열 곡선 비교 — 순물질 vs 혼합물</h1>
+    <p>물과 소금물을 똑같이 가열하면 끓는점은 어떻게 달라질까?</p>
+    <span class="std">[9과08-02] 물질의 특성을 근거로 순물질과 혼합물 분류하기</span>
+  </header>
+
+  <div class="panel think">
+    <h3>🔮 가열하기 전, 먼저 예측해 보자</h3>
+    <ol>
+      <li>물과 소금물을 똑같은 세기로 계속 가열하면, <b>끓는 동안 온도</b>는 각각 어떻게 될까?</li>
+      <li>두 곡선의 모양은 같을까, 다를까? 다르다면 어떻게 다를까?</li>
+    </ol>
+    <p style="font-size:.85rem;color:var(--muted);margin-top:8px">예측을 활동지(또는 패들렛)에 먼저 적은 뒤, 아래 <b>가열 시작</b>을 눌러 확인하세요.</p>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl">
+        <label>소금 농도 <b id="concLabel">10 %</b></label>
+        <input type="range" id="conc" min="0" max="25" value="10" step="1">
+        <div style="font-size:.8rem;color:var(--muted);margin-top:4px">0%로 두면 소금물도 '순수한 물'이 됩니다 — 두 곡선을 비교해 보세요.</div>
+      </div>
+      <div class="ctl btns">
+        <button class="b-go" id="go">▶ 가열 시작</button>
+        <button class="b-reset" id="reset">초기화</button>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <svg id="chart" viewBox="0 0 760 440" role="img" aria-label="가열 시간에 따른 온도 그래프"></svg>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--water)"></i>물 (순물질)</span>
+        <span><i class="dot" style="background:var(--salt)"></i>소금물 (혼합물)</span>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="read water">
+        <div class="t">물이 끓는 온도</div>
+        <div class="v" id="rWater">100.0 ℃</div>
+        <div class="tag tag-ok" id="rWaterTag">일정함 ✓</div>
+      </div>
+      <div class="read salt">
+        <div class="t">소금물이 끓기 시작</div>
+        <div class="v" id="rSalt">— ℃</div>
+        <div class="tag tag-no" id="rSaltTag">물보다 높음</div>
+      </div>
+      <div class="read salt">
+        <div class="t">끓는 동안 소금물 온도</div>
+        <div class="v" id="rSaltEnd">— ℃</div>
+        <div class="tag tag-no" id="rSaltEndTag">계속 올라감</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="conclude" id="conclude">
+    <h3>🔎 무엇이 분류의 근거일까?</h3>
+    <p><b>순물질(물)</b>은 끓는 동안 온도가 <b>한 점에서 일정</b>합니다. 반면 <b>혼합물(소금물)</b>은 끓기 시작하는 온도가 더 높고, 물이 증발해 농도가 진해질수록 <b>온도가 계속 올라가 일정하지 않습니다.</b> 따라서 겉모습(투명함)이 아니라 <b>'물질의 특성(끓는점)이 일정한가'</b>가 순물질과 혼합물을 가르는 근거가 됩니다.</p>
+  </div>
+
+  <footer>물 vs 소금물 가열곡선 시뮬레이션 v1.0 · 끓는점 오름(ΔT<sub>b</sub>=i·K<sub>b</sub>·m) 기반 · 농도 변화는 학습용으로 보기 좋게 조정</footer>
+</div>
+
+<script>
+/* ====== 물리 모델 ====== */
+const T0=20, BP=100, Kb=0.512, iNaCl=2, M=58.44;   // 끓는점 오름
+const heatRate=10;        // 가열 구간 승온율 (℃/min)
+const totalT=20;          // 전체 가열 시간 (min)
+const evapRate=4.2;       // 끓을 때 물 증발 속도 (g/min) — 농도 진해짐 표현
+const satW=0.264;         // 소금 포화 질량분율(약 26%)
+const dt=0.08;
+
+function molality(S,W){ return (1000*S)/(M*Math.max(W,0.001)); } // mol/kg
+function curveData(w0){
+  const water=[], salt=[];
+  const S=100*w0, W0=100*(1-w0);
+  const TbOnset = BP + iNaCl*Kb*molality(S,W0);
+  const tOnset = (TbOnset - T0)/heatRate;
+  for(let t=0;t<=totalT+1e-9;t+=dt){
+    // 물(순물질)
+    water.push([t, Math.min(T0+heatRate*t, BP)]);
+    // 소금물(혼합물)
+    let temp;
+    if(t<=tOnset){ temp = T0+heatRate*t; }
+    else{
+      let W = W0 - evapRate*(t-tOnset);
+      let w = S/(S+Math.max(W,0.001));
+      if(w>satW){ W = S*(1-satW)/satW; }      // 포화 도달 → 농도 고정
+      temp = BP + iNaCl*Kb*molality(S, Math.max(W,0.001));
+    }
+    salt.push([t, temp]);
+  }
+  return {water, salt, TbOnset, tOnset};
+}
+
+/* ====== 좌표계 ====== */
+const PAD={l:58,r:24,t:24,b:48}, W=760, H=440;
+const xmin=0,xmax=totalT, ymin=0,ymax=125;
+const X=t=>PAD.l+(t-xmin)/(xmax-xmin)*(W-PAD.l-PAD.r);
+const Y=v=>H-PAD.b-(v-ymin)/(ymax-ymin)*(H-PAD.t-PAD.b);
+const pts=arr=>arr.map(p=>X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join(" ");
+
+/* ====== 그리기 ====== */
+const svg=document.getElementById('chart');
+const NS="http://www.w3.org/2000/svg";
+function el(n,a){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+let data=null, anim=null, playing=false;
+
+function drawAxes(){
+  svg.innerHTML="";
+  // 격자 + y눈금
+  for(let v=0;v<=120;v+=20){
+    svg.appendChild(el("line",{x1:PAD.l,y1:Y(v),x2:W-PAD.r,y2:Y(v),stroke:"#eef1f6","stroke-width":1}));
+    const tx=el("text",{x:PAD.l-10,y:Y(v)+4,"text-anchor":"end","font-size":12,fill:"#94a3b8"});tx.textContent=v;svg.appendChild(tx);
+  }
+  // 100℃ 강조선
+  svg.appendChild(el("line",{x1:PAD.l,y1:Y(100),x2:W-PAD.r,y2:Y(100),stroke:"#cbd5e1","stroke-width":1.5,"stroke-dasharray":"5 5"}));
+  // x눈금
+  for(let t=0;t<=totalT;t+=4){
+    const tx=el("text",{x:X(t),y:H-PAD.b+22,"text-anchor":"middle","font-size":12,fill:"#94a3b8"});tx.textContent=t;svg.appendChild(tx);
+  }
+  // 축선
+  svg.appendChild(el("line",{x1:PAD.l,y1:PAD.t,x2:PAD.l,y2:H-PAD.b,stroke:"#334155","stroke-width":1.5}));
+  svg.appendChild(el("line",{x1:PAD.l,y1:H-PAD.b,x2:W-PAD.r,y2:H-PAD.b,stroke:"#334155","stroke-width":1.5}));
+  // 축 라벨
+  const yl=el("text",{x:18,y:H/2,"text-anchor":"middle","font-size":13,fill:"#475569","font-weight":700,transform:`rotate(-90 18 ${H/2})`});yl.textContent="온도 (℃)";svg.appendChild(yl);
+  const xl=el("text",{x:(W+PAD.l)/2,y:H-10,"text-anchor":"middle","font-size":13,fill:"#475569","font-weight":700});xl.textContent="가열 시간 (분)";svg.appendChild(xl);
+}
+
+function render(){
+  const w0=+document.getElementById('conc').value/100;
+  data=curveData(w0);
+  drawAxes();
+  // clip(애니메이션용)
+  const defs=el("defs",{}); const cp=el("clipPath",{id:"reveal"});
+  const rect=el("rect",{id:"revRect",x:PAD.l,y:0,width:0,height:H}); cp.appendChild(rect); defs.appendChild(cp); svg.appendChild(defs);
+  const g=el("g",{"clip-path":"url(#reveal)"});
+  g.appendChild(el("polyline",{points:pts(data.salt),fill:"none",stroke:"var(--salt)","stroke-width":4,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  g.appendChild(el("polyline",{points:pts(data.water),fill:"none",stroke:"var(--water)","stroke-width":4,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  svg.appendChild(g);
+  // 라벨(끝점)
+  if(w0>0){
+    const sEnd=data.salt[data.salt.length-1];
+    const lbl=el("text",{x:X(sEnd[0])-4,y:Y(sEnd[1])-8,"text-anchor":"end","font-size":12.5,fill:"var(--salt)","font-weight":800,"clip-path":"url(#reveal)"});
+    lbl.textContent="계속 상승"; svg.appendChild(lbl);
+  }
+  const wLbl=el("text",{x:X(totalT)-4,y:Y(100)+18,"text-anchor":"end","font-size":12.5,fill:"var(--water)","font-weight":800,"clip-path":"url(#reveal)"});
+  wLbl.textContent="100℃ 일정"; svg.appendChild(wLbl);
+
+  // 즉시 수치 미리보기
+  updateReadout(w0, data.salt[data.salt.length-1][1]);
+  document.getElementById('rSalt').textContent = w0>0 ? data.TbOnset.toFixed(1)+" ℃" : "100.0 ℃";
+}
+
+function updateReadout(w0, saltEndTemp){
+  document.getElementById('concLabel').textContent=(w0*100).toFixed(0)+" %";
+  document.getElementById('rSaltEnd').textContent = w0>0 ? saltEndTemp.toFixed(1)+" ℃" : "100.0 ℃";
+  const sTag=document.getElementById('rSaltTag'), eTag=document.getElementById('rSaltEndTag');
+  if(w0===0){
+    sTag.textContent="물과 같음"; sTag.className="tag tag-ok";
+    eTag.textContent="일정함 ✓"; eTag.className="tag tag-ok";
+  }else{
+    sTag.textContent="물보다 높음 ↑"; sTag.className="tag tag-no";
+    eTag.textContent="계속 올라감 ↑"; eTag.className="tag tag-no";
+  }
+}
+
+/* ====== 애니메이션(가열) ====== */
+function play(){
+  if(playing) return;
+  render();
+  playing=true;
+  document.getElementById('go').disabled=true;
+  document.getElementById('conclude').classList.remove('show');
+  const rect=document.getElementById('revRect');
+  const fullW=(W-PAD.l-PAD.r);
+  const dur=4200; const start=performance.now();
+  const w0=+document.getElementById('conc').value/100;
+  const rSalt=document.getElementById('rSalt'), rSaltEnd=document.getElementById('rSaltEnd');
+  function step(now){
+    const k=Math.min((now-start)/dur,1);
+    rect.setAttribute('width', (fullW*k).toFixed(1));
+    // 진행 중 실시간 수치
+    const idx=Math.min(Math.floor(k*(data.salt.length-1)), data.salt.length-1);
+    if(w0>0){
+      rSalt.textContent=data.TbOnset.toFixed(1)+" ℃";
+      rSaltEnd.textContent=data.salt[idx][1].toFixed(1)+" ℃";
+    }
+    if(k<1){ anim=requestAnimationFrame(step); }
+    else{ playing=false; document.getElementById('go').disabled=false;
+      document.getElementById('conclude').classList.add('show'); }
+  }
+  anim=requestAnimationFrame(step);
+}
+function resetAll(){
+  if(anim) cancelAnimationFrame(anim); playing=false;
+  document.getElementById('go').disabled=false;
+  document.getElementById('conclude').classList.remove('show');
+  render(); document.getElementById('revRect').setAttribute('width',0);
+}
+
+/* ====== 이벤트 ====== */
+document.getElementById('conc').addEventListener('input',()=>{ resetAll(); });
+document.getElementById('go').addEventListener('click',play);
+document.getElementById('reset').addEventListener('click',resetAll);
+
+render();
+document.getElementById('revRect').setAttribute('width',0);
+</script>
+</body>
+</html>

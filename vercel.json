@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/heating-curve-sim-v1.0.html" }
+  ]
+}
