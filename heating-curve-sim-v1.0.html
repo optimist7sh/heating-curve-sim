@@ -152,16 +152,18 @@
 const T0=20, BP=100, Kb=0.512, iNaCl=2, M=58.44;   // 끓는점 오름
 const heatRate=10;        // 가열 구간 승온율 (℃/min)
 const totalT=20;          // 전체 가열 시간 (min)
-const evapRate=4.2;       // 끓을 때 물 증발 속도 (g/min) — 농도 진해짐 표현
+const evapRate=5.0;       // 끓을 때 물 증발 속도 (g/min) — 농도 진해짐 표현
 const satW=0.264;         // 소금 포화 질량분율(약 26%)
 const dt=0.08;
 const CONC=0.10;          // 소금물 질량분율(고정)
+const EXAG=2.5;           // 끓는점 오름 과장 배율 — 물과 차이 잘 보이게(학습용)
 
 function molality(S,W){ return (1000*S)/(M*Math.max(W,0.001)); } // mol/kg
+function dTb(S,W){ return EXAG*iNaCl*Kb*molality(S,W); }         // 끓는점 오름(과장)
 function curveData(w0){
   const water=[], salt=[];
   const S=100*w0, W0=100*(1-w0);
-  const TbOnset = BP + iNaCl*Kb*molality(S,W0);
+  const TbOnset = BP + dTb(S,W0);
   const tOnset = (TbOnset - T0)/heatRate;
   for(let t=0;t<=totalT+1e-9;t+=dt){
     // 물(순물질)
@@ -173,7 +175,7 @@ function curveData(w0){
       let W = W0 - evapRate*(t-tOnset);
       let w = S/(S+Math.max(W,0.001));
       if(w>satW){ W = S*(1-satW)/satW; }      // 포화 도달 → 농도 고정
-      temp = BP + iNaCl*Kb*molality(S, Math.max(W,0.001));
+      temp = BP + dTb(S, Math.max(W,0.001));
     }
     salt.push([t, temp]);
   }
